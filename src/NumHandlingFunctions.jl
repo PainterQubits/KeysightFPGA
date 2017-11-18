@@ -23,3 +23,15 @@ function to_signed(a,nbits)
         b = string('1',mag[end-nbits+2:end]);
     end
 end
+
+function DecryptIntegData(data)
+    L = length(data)
+    N = Int32(floor((L-1)/5))
+    extData = Vector{Int64}(N);
+    extFltData = Vector{Float64}(N);
+    for i=1:1:N
+        extDataI[i] = to_integer(string(to_signed(data[5*i-1],16),to_signed(data[5*i-2],16),to_signed(data[5*i-3],16)));
+        extFltData[i] = extData[i]./(5*data[5*i]*(2^30));
+    end
+    return extFltData
+end
