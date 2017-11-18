@@ -1,3 +1,8 @@
+export ADC
+export to_integer
+export to_signed
+export DecryptIntegData
+
 function ADC(ana, L, U, nbits)
     ana -= L
     ana /= (U - L)
@@ -30,7 +35,7 @@ function DecryptIntegData(data)
     extData = Vector{Int64}(N);
     extFltData = Vector{Float64}(N);
     for i=1:1:N
-        extDataI[i] = to_integer(string(to_signed(data[5*i-1],16),to_signed(data[5*i-2],16),to_signed(data[5*i-3],16)));
+        extData[i] = to_integer(string(to_signed(data[5*i-1],16),to_signed(data[5*i-2],16),to_signed(data[5*i-3],16)));
         extFltData[i] = extData[i]./(5*data[5*i]*(2^30));
     end
     return extFltData
