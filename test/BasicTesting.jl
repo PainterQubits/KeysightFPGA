@@ -13,126 +13,21 @@ Timeout =1;
 IQDEMPrepone = 0;
 L=200;
 Amp = 0.8;
-Freq = 100e6;
-Phase = 0.25;
+Freq = 10e6;
+Phase = 0;
 Dt = 2e-9;
 clr = Vector{Cint}(zeros(200));
 daq_stop(dig)
-println("Stopped DAQs. Creating seed Data...")
+println("Stopped DAQs.")
 
-t = Array(0:1023);
-int1Data = Vector{Int64}(1024);
-flt1Data = Vector{Float64}(1024);
-int2Data = Vector{Int64}(1024);
-flt2Data = Vector{Float64}(1024);
-for i=1:1:1024
-    flt1Data[i] = sin.(2*pi*Freq*Dt*t[i]);
-    flt2Data[i] = cos.(2*pi*Freq*Dt*t[i]);
-end
+prepFPGAIQ(dig,Freq)
 
-int1Data = ADC(flt1Data,-1,1,16);
-raw1Data = Vector{Cint}(int1Data);
-int2Data = ADC(flt2Data,-1,1,16);
-raw2Data = Vector{Cint}(int2Data);
+daq_configIQ(dig,1)
 
-raw1Data0 = Vector{Cint}(200);
-raw1Data1 = Vector{Cint}(200);
-raw1Data2 = Vector{Cint}(200);
-raw1Data3 = Vector{Cint}(200);
-raw1Data4 = Vector{Cint}(200);
+println("Configuring AWGs...")
 
-raw2Data0 = Vector{Cint}(200);
-raw2Data1 = Vector{Cint}(200);
-raw2Data2 = Vector{Cint}(200);
-raw2Data3 = Vector{Cint}(200);
-raw2Data4 = Vector{Cint}(200);
-
-for i=1:1:200
-    raw1Data0[i] = raw1Data[5*i-4];
-    raw1Data1[i] = raw1Data[5*i-3];
-    raw1Data2[i] = raw1Data[5*i-2];
-    raw1Data3[i] = raw1Data[5*i-1];
-    raw1Data4[i] = raw1Data[5*i];
-
-    raw2Data0[i] = raw2Data[5*i-4];
-    raw2Data1[i] = raw2Data[5*i-3];
-    raw2Data2[i] = raw2Data[5*i-2];
-    raw2Data3[i] = raw2Data[5*i-1];
-    raw2Data4[i] = raw2Data[5*i];
-end
-
-println("Created seed Data. Writing Data on FPGA RAM...")
-
-SD_Module_FPGAwritePCport(dig.ID,1,raw1Data0,0,0,1);
-sleep(1)
-SD_Module_FPGAwritePCport(dig.ID,1,raw1Data1,1024,0,1);
-sleep(1)
-SD_Module_FPGAwritePCport(dig.ID,1,raw1Data2,2*1024,0,1);
-sleep(1)
-SD_Module_FPGAwritePCport(dig.ID,1,raw1Data3,3*1024,0,1);
-sleep(1)
-SD_Module_FPGAwritePCport(dig.ID,1,raw1Data4,4*1024,0,1);
-sleep(1)
-
-SD_Module_FPGAwritePCport(dig.ID,1,raw2Data0,8192,0,1);
-sleep(1)
-SD_Module_FPGAwritePCport(dig.ID,1,raw2Data1,8192+1024,0,1);
-sleep(1)
-SD_Module_FPGAwritePCport(dig.ID,1,raw2Data2,8192+2*1024,0,1);
-sleep(1)
-SD_Module_FPGAwritePCport(dig.ID,1,raw2Data3,8192+3*1024,0,1);
-sleep(1)
-SD_Module_FPGAwritePCport(dig.ID,1,raw2Data4,8192+4*1024,0,1);
-sleep(1)
-
-println("Wrote Data on the FPGA. Configuring DAQs...");
-
-@KSerror_handler SD_AIN_triggerIOconfig(dig.ID, 1)
-
-ch=1;
-dig[DAQPointsPerCycle, ch] = DataSize;
-dig[FullScale, ch] = 1;
-dig[DAQTrigDelay, ch] = 0;
-dig[DAQCycles,ch] = 1;
-dig[DAQTrigMode,ch] = :External;
-dig[ExternalTrigSource,ch] = :TRGPort;
-dig[ExternalTrigBehavior,ch] = :Rising;
-dig[Prescaler,ch] = 0;
-
-ch=2;
-dig[DAQPointsPerCycle, ch] = DataSize;
-dig[FullScale, ch] = 1;
-dig[DAQTrigDelay, ch] = 0;
-dig[DAQCycles,ch] = 1;
-dig[DAQTrigMode,ch] = :External;
-dig[ExternalTrigSource,ch] = :TRGPort;
-dig[ExternalTrigBehavior,ch] = :Rising;
-dig[Prescaler,ch] = 0;
-
-ch=3;
-dig[DAQPointsPerCycle, ch] = 2*L+1;
-dig[FullScale, ch] = 1;
-dig[DAQTrigDelay, ch] = 0;
-dig[DAQCycles,ch] = 1;
-dig[DAQTrigMode,ch] = :External;
-dig[ExternalTrigSource,ch] = :TRGPort;
-dig[ExternalTrigBehavior,ch] = :Rising;
-dig[Prescaler,ch] = 0;
-
-ch=4;
-dig[DAQPointsPerCycle, ch] = 2*L+1;
-dig[FullScale, ch] = 1;
-dig[DAQTrigDelay, ch] = 0;
-dig[DAQCycles,ch] = 1;
-dig[DAQTrigMode,ch] = :External;
-dig[ExternalTrigSource,ch] = :TRGPort;
-dig[ExternalTrigBehavior,ch] = :Rising;
-dig[Prescaler,ch] = 0;
-
-println("Set DAQ properties. Configuring AWGs...")
-
-fltIData = Amp*cos.(2*pi*Freq*Dt*t[1:2*L] + Phase*pi/180);
-fltQData = Amp*sin.(2*pi*Freq*Dt*t[1:2*L] + Phase*pi/180);
+#fltIData = Amp*cos.(2*pi*Freq*Dt*t[1:2*L] + Phase*pi/180);
+#fltQData = Amp*sin.(2*pi*Freq*Dt*t[1:2*L] + Phase*pi/180);
 readout = DigitalPulse(Freq, Amp, L*Dt, RectEnvelope, awg6[SampleRate], Phase)
 marker = DCPulse(1.5, L*Dt + 10e-9 + IQDEMPrepone*10e-9, RectEdge, awg4[SampleRate]) #1 is amplitude, 440e-9 is length
 load_pulse(awg6, readout); load_pulse(awg4, marker)
@@ -199,4 +94,4 @@ SD_Module_PXItriggerWrite(awg4.ID, 0, 1)  #Switch off Trigger
 
 println("Gave trigger and hopefully acquiring Data...")
 
-IntegData = daq_readIQ(dig,12)
+IntegData = daq_readIQ(dig,1)

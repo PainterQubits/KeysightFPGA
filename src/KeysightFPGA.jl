@@ -4,6 +4,6 @@ module KeysightFPGA
 
     using InstrumentControl
     include("NumHandlingFunctions.jl")
-    include("DAQFunctions.jl")
+    include("DigFunctions.jl")
 
 end
