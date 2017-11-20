@@ -31,4 +31,4 @@ awg_configIQ([awg6,awg4],Freq,Amp,L*Dt,Phase,:OneShot,EMD)
 
 triggerReadout([awg6,awg4],dig)
 
-IntegData = daq_readIQ(dig,1)
+IntegData = daq_readIQ(dig,1,MBAT)

@@ -14,6 +14,9 @@ channels:   Channels of AWG used for outputting readout pulse.
 This function configures the selected Fast AWG for sending readout pulse.
 """
 function awg_configIQ(awg::InsAWGM320XA, Freq::Real, Amp::Real, Len::Real, Phase::Real,QCMode::Symbol = :Cyclic, channels::Array{Int64}=[1,2] ,ShowMessages::Integer=1)
+    for ch in channels
+        awg_stop(awg,ch)
+    end
     readout = DigitalPulse(Freq, Amp, Len, RectEnvelope, awg[SampleRate], Phase)
     load_pulse(awg, readout);
     #Configuring Readout channels
@@ -23,7 +26,7 @@ function awg_configIQ(awg::InsAWGM320XA, Freq::Real, Amp::Real, Len::Real, Phase
     awg[QueueCycleMode, channels[1],channels[2]] = QCMode
     awg[QueueSyncMode, channels[1],channels[2]] = :CLK10
     awg[TrigSource, channels[1],channels[2]] = 0 #PXI line
-    awg[TrigBehavior, channels[1],channels[2]] = :Falling
+    awg[TrigBehavior, channels[1],channels[2]] = :Low
     awg[TrigSync, channels[1],channels[2]] = :CLK10
     awg[AmpModMode, channels[1],channels[2]] = :Off
     awg[AngModMode, channels[1],channels[2]] = :Off
@@ -31,6 +34,17 @@ function awg_configIQ(awg::InsAWGM320XA, Freq::Real, Amp::Real, Len::Real, Phase
     queue_flush(awg, channels[1]); queue_flush(awg, channels[2]);
     queue_waveform(awg, channels[1], readout.I_waveform, :External, delay = 0)
     queue_waveform(awg, channels[2], readout.Q_waveform, :External, delay = 0)
+    if Len<4e-6
+        DelayWaveform = Waveform(make_Delay(4e-6-Len, awg[SampleRate]), "Delay")
+        load_waveform(awg,DelayWaveform,10);
+        queue_waveform(awg, channels[1], DelayWaveform, :Auto, delay = 0)
+        queue_waveform(awg, channels[2], DelayWaveform, :Auto, delay = 0)
+    else
+        DelayWaveform = Waveform(make_Delay(100e-9, awg[SampleRate]), "Delay")
+        load_waveform(awg,DelayWaveform,10);
+        queue_waveform(awg, channels[1], DelayWaveform, :Auto, delay = 0)
+        queue_waveform(awg, channels[2], DelayWaveform, :Auto, delay = 0)
+    end
     if ShowMessages==1
         println("Configured AWG at slot ",awg.slot_num)
     end
@@ -45,6 +59,7 @@ channel :   Channel of AWG used for outputting marker pulse.
 This function configures the selected Slow AWG for sending marker pulse appropriately.
 """
 function awg_configIQ(awg::InsAWGM320XA, Len::Real, QCMode::Symbol = :Cyclic, EMD::Integer = 10, channel::Integer=4,ShowMessages::Integer=1)
+    awg_stop(awg,channel)
     DelayBetweenMarkerandReadout = EMD + IntialTicksToBeCropped;
     ExtraLengthForMarker = 10e-9*(1-IntialTicksToBeCropped);
     marker = DCPulse(1.5, Len + ExtraLengthForMarker, RectEdge, awg[SampleRate])
@@ -56,13 +71,22 @@ function awg_configIQ(awg::InsAWGM320XA, Len::Real, QCMode::Symbol = :Cyclic, EM
     awg[QueueCycleMode, channel] = QCMode
     awg[QueueSyncMode, channel] = :CLK10
     awg[TrigSource, channel] = 0
-    awg[TrigBehavior, channel] = :Falling
+    awg[TrigBehavior, channel] = :Low
     awg[TrigSync, channel] = :CLK10
     awg[AmpModMode, channel] = :Off
     awg[AngModMode, channel] = :Off
     #Flush and queue waveform
     queue_flush(awg, channel)
     queue_waveform(awg, channel, marker.waveform, :External, delay = DelayBetweenMarkerandReadout)
+    if Len<4e-6
+        DelayWaveform = Waveform(make_Delay(4e-6- Len - ExtraLengthForMarker- DelayBetweenMarkerandReadout*10e-9, awg[SampleRate]), "Delay")
+        load_waveform(awg,DelayWaveform,10);
+        queue_waveform(awg, channel, DelayWaveform, :Auto, delay = 0)
+    else
+        DelayWaveform = Waveform(make_Delay(100e-9- ExtraLengthForMarker - DelayBetweenMarkerandReadout*10e-9, awg[SampleRate]), "Delay")
+        load_waveform(awg,DelayWaveform,10);
+        queue_waveform(awg, channel, DelayWaveform, :Auto, delay = 0)
+    end
     if ShowMessages==1
         println("Assumed that marker will be sent out from channel ",channel,". Connect channel ",channel," of selected slow AWG to trigger port of digitizer.")
         println("Configured AWG at slot ",awg.slot_num)

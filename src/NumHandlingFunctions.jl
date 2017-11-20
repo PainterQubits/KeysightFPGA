@@ -29,14 +29,14 @@ function to_signed(a,nbits)
     end
 end
 
-function DecryptIntegData(data)
+function DecryptIntegData(data::Array{Int16},MBAT::Integer=0)
     L = length(data)
-    N = Int32(floor((L-1)/5))
+    N = Int32(floor(L/6))
     extData = Vector{Int64}(N);
     extFltData = Vector{Float64}(N);
     for i=1:1:N
-        extData[i] = to_integer(string(to_signed(data[5*i-1],16),to_signed(data[5*i-2],16),to_signed(data[5*i-3],16)));
-        extFltData[i] = extData[i]./(5*data[5*i]*(2^30));
+        extData[i] = to_integer(string(to_signed(data[6*i-2],16),to_signed(data[6*i-3],16),to_signed(data[6*i-2],16)));
+        extFltData[i] = extData[i]./((5*data[6*i-1]-MBAT)*(2^30));
     end
     return extFltData
 end

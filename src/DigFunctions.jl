@@ -13,22 +13,24 @@ N       :   Number of Readout Pulse Sequences.
 channels:   Channel Array which is receiving the readout signal.
 timeout :   Timeout in case DAQ did not read anything (in s).
 """
-function daq_readIQ(dig::InsDigitizerM3102A,N::Integer,channels::Array{Int64}=[1,2],timeout::Integer=1)
+function daq_readIQ(dig::InsDigitizerM3102A,N::Integer,MBAT::Integer=0,channels::Array{Int64}=[1,2],timeout::Integer=1)
     noch = length(channels);
     if length(N)==1
-        DS = 5*N*ones(Integer,noch)+1;
+        DS = 6*N*ones(Integer,noch);
     elseif length(N)!= noch
         println("Error in specifing Number of Pulse Sequences. Either give single number same for all channels or give a vector of length same as channel vector");
+    else
+        DS = 6*N;
     end
     IntegData = Array{Float64}(maximum(N),noch);
     if noch==2
         Idata1 = daq_read(dig, channels[1],DS[1],timeout);
         Qdata1 = daq_read(dig, channels[2],DS[2],timeout);
         if length(Idata1)>1
-            IntegData[:,1] = DecryptIntegData(Idata1);
-            IntegData[:,2] = DecryptIntegData(Qdata1);
+            IntegData[:,1] = DecryptIntegData(Idata1,MBAT);
+            IntegData[:,2] = DecryptIntegData(Qdata1,MBAT);
         else
-            Println("No data read. Check the configuration of DAQ and AWGs.")
+            println("No data read. Check the configuration of DAQ and AWGs.")
         end
     elseif noch==4
         Idata1 = daq_read(dig, channels[1],DS[1],timeout);
@@ -36,12 +38,12 @@ function daq_readIQ(dig::InsDigitizerM3102A,N::Integer,channels::Array{Int64}=[1
         Idata2 = daq_read(dig, channels[3],DS[3],timeout);
         Qdata2 = daq_read(dig, channels[4],DS[4],timeout);
         if length(Idata1)>1
-            IntegData[:,1] = DecryptIntegData(Idata1);
-            IntegData[:,2] = DecryptIntegData(Qdata1);
-            IntegData[:,3] = DecryptIntegData(Idata2);
-            IntegData[:,4] = DecryptIntegData(Qdata2);
+            IntegData[:,1] = DecryptIntegData(Idata1,MBAT);
+            IntegData[:,2] = DecryptIntegData(Qdata1,MBAT);
+            IntegData[:,3] = DecryptIntegData(Idata2,MBAT);
+            IntegData[:,4] = DecryptIntegData(Qdata2,MBAT);
         else
-            Println("No data read. Check the configuration of DAQ and AWGs.")
+            println("No data read. Check the configuration of DAQ and AWGs.")
         end
     else
         println("Error in specifying Channels. Channel Vector should be either of length 2 or 4.");

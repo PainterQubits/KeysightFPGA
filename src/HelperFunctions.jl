@@ -1,4 +1,5 @@
 export DetectDelayMismatches
+export CalculateAmpPhase
 
 function DetectDelayMismatches(AWGs::Vector{InsAWGM320XA}, dig::InsDigitizerM3102A, Rchannels::Array{Int64}=[1,2], Mchannel::Integer=4, Dchannels::Array{Int64}=[1,2])
     prepFPGAIQ(dig,10e6,0,0)
@@ -31,8 +32,14 @@ function DetectDelayMismatches(AWGs::Vector{InsAWGM320XA}, dig::InsDigitizerM310
     daq_configIQ(dig,1,[1,2],0)
     awg_configIQ(AWGs,10e6,0.8,400e-9,0,:OneShot,EMD,Rchannels,Mchannel,0)
     triggerReadout(AWGs,dig,Rchannels,Mchannel,Dchannels)
-    IntegData = daq_readIQ(dig,1,Dchannels)
+    IntegData = daq_readIQ(dig,1,MBAT,Dchannels)
     POffset = floor((atan(IntegData[1,2]/IntegData[1,1]))*100)/100;
     println("Phase Offset = ",POffset)
     return EMD,MBAT,POffset
+end
+
+function CalculateAmpPhase(IntegData::Array{Float64,2})
+    Amp = sqrt(IntegData[:,1].^2 + IntegData[:,2].^2);
+    Phase = atan.(IntegData[:,2]./IntegData[:,1]);
+    return Amp, Phase
 end

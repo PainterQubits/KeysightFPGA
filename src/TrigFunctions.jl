@@ -24,5 +24,6 @@ function triggerReadout(AWGs::Vector{InsAWGM320XA}, dig::InsDigitizerM3102A, Rch
         SD_AIN_DAQstart(dig.ID, ch)
     end
     SD_Module_PXItriggerWrite(AWGs[2].ID, 0, 0) #Trigger
-    SD_Module_PXItriggerWrite(AWGs[2].ID, 0, 1)  #Switch off Trigger
+    #sleep(10)
+    #SD_Module_PXItriggerWrite(AWGs[2].ID, 0, 1)  #Switch off Trigger
 end
