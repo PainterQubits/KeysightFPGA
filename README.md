@@ -12,12 +12,13 @@ using KeysightFPGA
 ###AWGFunctions
 
 ####function HowToConfigAWG(AWGs,dig)
--AWGs    :   Array of AWG Instrument Objects [Fast AWG, Slow AWG].
--dig     :   Digitizer Object.
--Rchannels:  Channels of Fast AWG used for outputting readout pulse.
--Mchannel :  Channel of Slow AWG used for outputting marker pulse.
--Dchannels:   Channel Array which is receiving the readout signal.
--ShowMessages: Shows printed instructions if set to 1.
+
+AWGs    :   Array of AWG Instrument Objects [Fast AWG, Slow AWG].
+dig     :   Digitizer Object.
+Rchannels:  Channels of Fast AWG used for outputting readout pulse.
+Mchannel :  Channel of Slow AWG used for outputting marker pulse.
+Dchannels:   Channel Array which is receiving the readout signal.
+ShowMessages: Shows printed instructions if set to 1.
 This function should be sued before running the experiment to know the delay to be set to Marker Pulse
 with respect to the Readout Pulse and a parameter called MBAT that would be used in prepFPGAIQ and
 daq_readIQ functions.
