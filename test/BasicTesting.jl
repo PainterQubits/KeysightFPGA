@@ -13,7 +13,7 @@ EMD,MBAT,POffset = DetectDelayMismatches([awg6,awg4],dig,[1,2],4,[1,2],1)
 
 Len =400e-9;
 Amp = 0.65;
-Freq = 10e6;
+Freq = 100e6;
 Phase = 0.5;
 clr = Vector{Cint}(zeros(200));
 daq_stop(dig)
@@ -23,7 +23,7 @@ prepFPGAIQ(dig,Freq,MBAT)
 
 daq_configIQ(dig,1)
 
-awg_configIQ([awg6,awg4],Freq,Amp,L*Dt,Phase,:OneShot,EMD)
+awg_configIQ([awg6,awg4],Freq,Amp,Len,Phase,:OneShot,EMD)
 
 triggerReadout([awg6,awg4],dig)
 

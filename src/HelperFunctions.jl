@@ -85,7 +85,7 @@ Amp     :   Amplitude read.
 Phase   :   Phase of the readout.
 """
 function CalculateAmpPhase(IntegData::Array{Float64,2})
-    Amp = sqrt(IntegData[:,1].^2 + IntegData[:,2].^2);
+    Amp = sqrt.(IntegData[:,1].^2 + IntegData[:,2].^2);
     Phase = atan.(IntegData[:,2]./IntegData[:,1]);
     return Amp, Phase
 end

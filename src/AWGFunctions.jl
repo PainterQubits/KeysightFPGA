@@ -4,7 +4,7 @@ export awg_configIQ
 global IntialTicksToBeCropped = 0;
 
 """
-function HowToConfigAWG(AWGs,dig)
+function HowToConfigAWG(AWGs::Vector{InsAWGM320XA}, dig::InsDigitizerM3102A, Rchannels::Array{Int64}=[1,2], Mchannel::Integer=4, Dchannels::Array{Int64}=[1,2],ShowMessages=1)
 AWGs    :   Array of AWG Instrument Objects [Fast AWG, Slow AWG].
 dig     :   Digitizer Object.
 Rchannels:  Channels of Fast AWG used for outputting readout pulse.
