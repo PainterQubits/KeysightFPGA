@@ -1,6 +1,36 @@
+export HowToConfigAWG
 export awg_configIQ
 
 global IntialTicksToBeCropped = 0;
+
+"""
+function HowToConfigAWG(AWGs,dig)
+AWGs    :   Array of AWG Instrument Objects [Fast AWG, Slow AWG].
+dig     :   Digitizer Object.
+Rchannels:  Channels of Fast AWG used for outputting readout pulse.
+Mchannel :  Channel of Slow AWG used for outputting marker pulse.
+Dchannels:   Channel Array which is receiving the readout signal.
+ShowMessages: Shows printed instructions if set to 1.
+This function should be sued before running the experiment to know the delay to be set to Marker Pulse
+with respect to the Readout Pulse and a parameter called MBAT that would be used in prepFPGAIQ and
+daq_readIQ functions.
+In case you want to use this function in a script, it outputs the two values as MarkerDelay, MBAT.
+Usage example: MarkerDelay, MBAT = HowToConfigAWG(AWGs,dig,Rchannels,Mchannel,Dchannels,0)
+"""
+function HowToConfigAWG(AWGs::Vector{InsAWGM320XA}, dig::InsDigitizerM3102A, Rchannels::Array{Int64}=[1,2], Mchannel::Integer=4, Dchannels::Array{Int64}=[1,2],ShowMessages=1)
+    DetectDelayMismatches(AWGs,dig,Rchannels,Mchannel,Dchannels,0);
+    EMD,MBAT,POffset = DetectDelayMismatches(AWGs,dig,Rchannels,Mchannel,Dchannels,1);
+    if ShowMessages == 1
+        println("Use the following settings while configuring AWG for using FPGA IQ Demodulation code:")
+        println("Set the marker pulse to have a delay of ",(EMD + IntialTicksToBeCropped)," with respect to readout pulse. (Delay is in ticks of 10 ns).")
+        println("While using prepFPGAIQ, use it with prepFPGAIQ(dig,Freq,MBAT=",MBAT,").")
+        println("While using prepFPGAIQ, use it with prepFPGAIQ(dig,Freq,MBAT=",MBAT,").")
+        println("While using daq_readIQ, use it with daq_readIQ(dig,N,MBAT=",MBAT,").")
+        println("For using this function in script, it outputs the two values as MarkerDelay, MBAT")
+        println("Example: MarkerDelay, MBAT = HowToConfigAWG(AWGs,dig,Rchannels,Mchannel,Dchannels,0)")
+    end
+    return (EMD + IntialTicksToBeCropped),MBAT
+end
 
 """
 function awg_configIQ(awg::InsAWGM320XA, Freq::Real, Amp::Real, Len::Real, Phase::Real,channels::Array{Int64}=[1,2])

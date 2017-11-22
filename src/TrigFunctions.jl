@@ -1,9 +1,5 @@
 export triggerReadout
 
-using InstrumentControl
-using InstrumentControl: AWGM320XA, DigitizerM3102A
-using KeysightInstruments
-
 """
 function triggerReadout(AWGs::Vector{InsAWGM320XA},dig::InsDigitizerM3102A,Rchannels::Array{Integer}=[1,2],Mchannel::Integer=4,DChannels::Array{Integer}=[1,2])
 AWGs    :   Array of AWG Instrument Objects [Fast AWG, Slow AWG].

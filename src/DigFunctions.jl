@@ -2,9 +2,7 @@ export daq_readIQ
 export daq_configIQ
 export prepFPGAIQ
 
-using InstrumentControl
-using InstrumentControl: DigitizerM3102A
-using KeysightInstruments
+global IntialTicksToBeCropped = 0;
 
 """
 function daq_readIQ(dig::InsDigitizerM3102A,N::Integer,channels::Array{Int64}=[1,2],timeout::Integer=1)
@@ -12,6 +10,9 @@ dig     :   Digitizer Object.
 N       :   Number of Readout Pulse Sequences.
 channels:   Channel Array which is receiving the readout signal.
 timeout :   Timeout in case DAQ did not read anything (in s).
+This function reads data from DAQ buffer and gives the integrated I and Q values of readout.
+Output:
+IntegData   :   Integrated data. Column 1 is I, Column 2 is Q. Each row is different readout instance.
 """
 function daq_readIQ(dig::InsDigitizerM3102A,N::Integer,MBAT::Integer=0,channels::Array{Int64}=[1,2],timeout::Integer=1)
     noch = length(channels);
@@ -91,7 +92,7 @@ function prepFPGAIQ(dig::InsDigitizerM3102A,Freq::Real,MBAT::Integer=0,ShowMessa
         println("Preping FPGA...");
     end
 
-    t = Array(0:(1019-MBAT));
+    t = Array(0:(1019-MBAT)) + 5*IntialTicksToBeCropped;
     intSine = Vector{Int64}(1020-MBAT);
     fltSine = Vector{Float64}(1020-MBAT);
     intCosine = Vector{Int64}(1020-MBAT);
@@ -105,9 +106,9 @@ function prepFPGAIQ(dig::InsDigitizerM3102A,Freq::Real,MBAT::Integer=0,ShowMessa
         push!(fltCosine,0);
     end
 
-    intSine = ADC(fltSine,-1,1,16);
+    intSine = ADC(fltSine);
     rawSine = Vector{Cint}(intSine);
-    intCosine = ADC(fltCosine,-1,1,16);
+    intCosine = ADC(fltCosine);
     rawCosine = Vector{Cint}(intCosine);
 
     rawSine0 = Vector{Cint}(204);
